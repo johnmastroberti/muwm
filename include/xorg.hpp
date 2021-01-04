@@ -1,4 +1,5 @@
 #pragma once
+#include "monitor.hpp"
 
 class XorgDisplay {
   private:
@@ -10,6 +11,7 @@ class XorgDisplay {
 
     friend class XorgScreen;
     friend class Drw;
+    friend class XorgConnection;
 };
 
 
@@ -29,6 +31,7 @@ class XorgScreen {
     Window get_root();
 
     friend class Drw;
+    friend class XorgConnection;
 };
 
 
@@ -56,10 +59,17 @@ class XorgConnection {
     XorgScreen screen;
     Drw drw;
 
-    int update_geometry();
+    // various standards compliance stuff that I dont understand:
+    Atom wmatom[WMLast], netatom[NetLast];
+    Window wmcheckwin;
+    void setup_atoms();
+    void netwm_check_setup();
+    void ewmh_support();
 
   public:
     XorgConnection();
     ~XorgConnection();
+
+    int update_geometry(std::vector<Monitor>& mons);
 };
 

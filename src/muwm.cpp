@@ -1,7 +1,7 @@
 #include "muwm.hpp"
 
-MuWM::MuWM(int argc, char **argv) : m_xconn{} {
-
+MuWM::MuWM(int argc, char **argv) : xconn{}, monitors{} {
+  xconn.update_geometry(monitors)
 }
 
 
