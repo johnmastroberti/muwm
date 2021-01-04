@@ -5,4 +5,5 @@ class MuWM {
 
   public:
     MuWM(int argc, char **argv);
+    ~MuWM();
 };

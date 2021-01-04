@@ -1,4 +1,6 @@
 #include <stdexcept>
+#include <cstdio>
+
 #include "error.hpp"
 // Default error handler saved as a fallback
 static XorgErrorHandlerFunc default_error_handler;

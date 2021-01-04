@@ -1,21 +1,48 @@
 #pragma once
 
-typedef int (*XorgErrorHandlerFunc)(Display*, XErrorEvent*);
-
-
-class XorgScreen {
-  private:
-    Screen *screen;
-    int width, height;
-};
-
 class XorgDisplay {
   private:
-    Display *d;
+    Display *display;
 
   public:
     XorgDisplay();
     ~XorgDisplay();
+
+    friend class XorgScreen;
+    friend class Drw;
+};
+
+
+class XorgScreen {
+  private:
+    int screen;
+    int width, height;
+    Window root;
+
+  public:
+    XorgScreen(XorgDisplay& display);
+    ~XorgScreen();
+
+    int get_screen();
+    int get_width() const;
+    int get_height() const;
+    Window get_root();
+
+    friend class Drw;
+};
+
+
+class Drw {
+  private:
+    XorgDisplay& display;
+    XorgScreen& screen;
+    Drawable drawable;
+    GC gc;
+    XftColor normal_border, select_border;
+
+  public:
+    Drw(XorgDisplay& d, XorgScreen& s);
+    ~Drw();
 };
 
 
@@ -25,15 +52,11 @@ class XorgDisplay {
 // Only one instance of XorgConnection should exist at a time.
 class XorgConnection {
   private:
-    Display *display;
-    XorgErrorHandlerFunc *default_error_handler;
+    XorgDisplay display;
+    XorgScreen screen;
+    Drw drw;
 
-    // Throws an exception if another window manager is already running
-    void check_other_wm();
-    // Supporting function used by check_other_wm
-    int xerrorstart(Display*, XErrorEvent*);
-    // Error handling function for xorg to call
-    int xerror(Display*, XErrorEvent*);
+    int update_geometry();
 
   public:
     XorgConnection();
