@@ -1,7 +1,8 @@
 #include "muwm.hpp"
 
 MuWM::MuWM(int argc, char **argv) : xconn{}, monitors{} {
-  xconn.update_geometry(monitors)
+  xconn.update_geometry(monitors);
+  // TODO: use xresources to get color schemes
 }
 
 

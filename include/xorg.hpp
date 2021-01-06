@@ -43,9 +43,14 @@ class Drw {
     GC gc;
     XftColor normal_border, select_border;
 
+    Cursor cursor_normal, cursor_resize, cursor_move;
+
+
   public:
     Drw(XorgDisplay& d, XorgScreen& s);
     ~Drw();
+
+    friend class XorgConnection;
 };
 
 
@@ -66,10 +71,20 @@ class XorgConnection {
     void netwm_check_setup();
     void ewmh_support();
 
+    // Selecting the events that we want xorg to tell us about
+    void select_events();
+
+    // Keyboard input handling
+    // TODO: substantial changes will likely be necessary here since we are
+    // leaving keyboard shortcuts up to an external program
+    int numlock_mask;
+    void update_numlock_mask();
+
   public:
     XorgConnection();
     ~XorgConnection();
 
     int update_geometry(std::vector<Monitor>& mons);
+    void focus_root();
 };
 

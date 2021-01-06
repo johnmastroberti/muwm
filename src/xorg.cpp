@@ -1,13 +1,26 @@
 #include <stdexcept>
 #include <span>
+#include <csignal>
+#include <cstdio>
 #include "error.hpp"
 #include "xorg.hpp"
+
+// Signal handler used to clean up zombie processes
+void sigchld(int unused)
+{
+	if (signal(SIGCHLD, sigchld) == SIG_ERR) {
+		perror("can't install SIGCHLD handler: ");
+    std::exit(EXIT_FAILURE);
+  }
+	while (0 < waitpid(-1, NULL, WNOHANG));
+}
 
 XorgDisplay::XorgDisplay()
   : d{XOpenDisplay(nullptr)} {
   if (!display) throw std::runtime_error("cannot open display");
   check_other_wm(d);
   set_error_handler(d);
+  sigchld(0); // cleans up zombies
 }
 
 
@@ -22,11 +35,17 @@ Drw::Drw(XorgDisplay& d, XorgScreen& s)
   : display{d}, screen{s},
     drawable{XCreatePixmap(d.display, s.root, s.width, s.height,
         DefaultDepth(d.display, s.screen))},
-    gc{XCreateGC(d.display, s.root, 0, nullptr)} {
+    gc{XCreateGC(d.display, s.root, 0, nullptr)},
+    cursor_normal{XCreateFontCursor(d.display, XC_left_prt)},
+    cursor_resize{XCreateFontCursor(d.display, XC_sizing)},
+    cursor_move{XCreateFontCursor(d.display, XC_fleur)} {
   XSetLineAttributes(d.display, gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 Drw::~Drw() {
+  XFreeCursor(display.display, cursor_normal);
+  XFreeCursor(display.display, cursor_resize);
+  XFreeCursor(display.display, cursor_move);
   XFreePixmap(display.display, drawable);
   XFreeGC(display.display, gc);
 }
@@ -35,7 +54,11 @@ Drw::~Drw() {
 XorgConnection::XorgConnection()
   : display{}, screen{display},
     drw{display, screen} {
-  update_geometry();
+  setup_atoms();
+  netwm_check_setup();
+  ewmh_support();
+  select_events();
+  focus_root();
 }
 
 bool XorgConnection::update_geometry(std::vector<Monitor>& mons) {
@@ -159,4 +182,41 @@ void XorgConnection::ewmh_support() {
 	XDeleteProperty(display.display, screen.root, netatom[NetClientList]);
 }
 
+void XorgConnection::select_events() {
+  XSetWindowAttributes wa;
+  wa.cursor = drw.cursor_normal;
+  wa.event_mask = SubstructureRedirectMask|SubstructureNotifyMask
+    |ButtonPressMask|PointerMotionMask|EnterWindowMask
+    |LeaveWindowMask|StructureNotifyMask|PropertyChangeMask;
+  XChangeWindowAttributes(display.display, screen.root, CWEventMask|CWCursor, &wa);
+  XSelectInput(display.display, screen.root, wa.event_mask);
+}
+
+
+void update_numlock_mask() {
+  // Although muwm does not deal with keyboard input directly,
+  // this function is still needed because the mouse button mappings
+  // for window moving/resizing need to know what the numlock mask is,
+  // so that they can be insensitive as to whether or not numlock is active
+	unsigned int i, j;
+	XModifierKeymap *modmap;
+
+	numlock_mask = 0;
+	modmap = XGetModifierMapping(display.display);
+	for (i = 0; i < 8; i++)
+		for (j = 0; j < modmap->max_keypermod; j++)
+			if (modmap->modifiermap[i * modmap->max_keypermod + j]
+				== XKeysymToKeycode(dpy, XK_Num_Lock))
+				numlockmask = (1 << i);
+	XFreeModifiermap(modmap);
+}
+
+void focus_root() {
+  // The part of dwm's code that runs when focus(NULL) is called
+  // during setup (minus bar logic).
+  // I think it just focuses the root window.
+  // TODO: implement the rest of focus(), probably as a member function for Client
+  XSetInputFocus(display.display, root.root, RevertToPointerRoot, CurrentTime);
+  XDeleteProperty(display.display, root.root, netatom[NetActiveWindow]);
+}
 
