@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <list>
 #include "geom.hpp"
 #include "client.hpp"
 
@@ -20,8 +21,8 @@ class Monitor {
     unsigned selected_tags;
     unsigned selected_layout;
     unsigned tagset[2] = {1,1};
-    std::vector<Client> clients;
-    std::vector<Client*> stack;
+    std::list<Client> clients;  // must be a list so that pointers
+    std::vector<Client*> stack; // held in stack are never invalidated
     Client* selected_client;
     std::vector<Layout> layouts;
     Layout* selected_layout;

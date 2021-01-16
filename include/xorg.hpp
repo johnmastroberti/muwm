@@ -1,5 +1,6 @@
 #pragma once
 #include "monitor.hpp"
+#include "client.hpp"
 
 class XorgDisplay {
   private:
@@ -84,7 +85,10 @@ class XorgConnection {
     XorgConnection();
     ~XorgConnection();
 
+    // Helper function for MuWM to get monitor geometry
     int update_geometry(std::vector<Monitor>& mons);
     void focus_root();
+
+    // Helper functions for Clients
 };
 

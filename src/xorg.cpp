@@ -119,8 +119,9 @@ bool XorgConnection::update_geometry(std::vector<Monitor>& mons) {
     if (mons.size() == 0) {
       mons.resize(1);
     }
-    if (mons.screen_size.w != screen.get_width()
-        || mons.screen_size.h != screen.get_height()) {
+    auto& m = mons[0];
+    if (m.screen_size.w != screen.get_width()
+        || m.screen_size.h != screen.get_height()) {
       m.update_screen_size(0, 0, screen.get_width(), screen.get_height());
       m.update_window_area(0, 0, 0, 0);
     }
