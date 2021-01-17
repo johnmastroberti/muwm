@@ -77,7 +77,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
   [UnmapNotify] = unmapnotify
 };
 static Atom wmatom[WMLast], netatom[NetLast];
-static int running = 1;
+static int running = 1, restart=0;
 static Cursors cursors;
 static Colors colors;
 static Display *dpy;
@@ -964,10 +964,22 @@ propertynotify(XEvent *e)
   }
 }
 
+void sighup(int x) {
+  (void) x;
+  Arg a = {.i = 1};
+  quit(&a);
+}
+
+void sigterm(int x) {
+  (void) x;
+  Arg a = {.i = 0};
+  quit(&a);
+}
+
 void
 quit(const Arg *arg)
 {
-  (void) arg;
+  if (arg->i) restart=1;
   running = 0;
 }
 
@@ -1245,6 +1257,8 @@ void setup(void) {
   // clean up any zombies immediately
   fputs("DEBUG: setup sigchld\n", stderr);
   sigchld(0);
+  signal(SIGHUP, sighup);
+  signal(SIGTERM, sigterm);
 
   fputs("DEBUG: setup screen\n", stderr);
   setup_screen();
@@ -1824,6 +1838,7 @@ main(int argc, char *argv[])
   scan();
   fputs("DEBUG: run\n", stderr);
   run();
+  if (restart) execvp(argv[0], argv);
   fputs("DEBUG: cleanup\n", stderr);
   cleanup();
   XCloseDisplay(dpy);
