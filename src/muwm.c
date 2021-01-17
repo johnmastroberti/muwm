@@ -1255,29 +1255,19 @@ setmfact(const Arg *arg)
 
 void setup(void) {
   // clean up any zombies immediately
-  fputs("DEBUG: setup sigchld\n", stderr);
   sigchld(0);
   signal(SIGHUP, sighup);
   signal(SIGTERM, sigterm);
 
-  fputs("DEBUG: setup screen\n", stderr);
   setup_screen();
-  fputs("DEBUG: setup atoms\n", stderr);
   setup_atoms();
-  fputs("DEBUG: setup create cursors\n", stderr);
   create_cursors(dpy, &cursors);
-  fputs("DEBUG: setup update colors\n", stderr);
   update_colors(dpy, screen, &colors);
-  fputs("DEBUG: setup wmcheck\n", stderr);
   setup_wmcheck();
-  fputs("DEBUG: setup ewmh\n", stderr);
   setup_ewmh();
-  fputs("DEBUG: setup select events\n", stderr);
   select_events();
 
-  fputs("DEBUG: setup grab keys\n", stderr);
   grabkeys();
-  fputs("DEBUG: setup focus NULL\n", stderr);
   focus(NULL);
 }
 
@@ -1823,23 +1813,17 @@ main(int argc, char *argv[])
     die("usage: muwm [-v]");
   if (!setlocale(LC_CTYPE, "") || !XSupportsLocale())
     fputs("warning: no locale support\n", stderr);
-  fputs("DEBUG: opening display\n", stderr);
   if (!(dpy = XOpenDisplay(NULL)))
     die("muwm: cannot open display");
-  fputs("DEBUG: check other wm\n", stderr);
   checkotherwm();
-  fputs("DEBUG: setup\n", stderr);
   setup();
 #ifdef __OpenBSD__
   if (pledge("stdio rpath proc exec", NULL) == -1)
     die("pledge");
 #endif /* __OpenBSD__ */
-  fputs("DEBUG: scan\n", stderr);
   scan();
-  fputs("DEBUG: run\n", stderr);
   run();
   if (restart) execvp(argv[0], argv);
-  fputs("DEBUG: cleanup\n", stderr);
   cleanup();
   XCloseDisplay(dpy);
   return EXIT_SUCCESS;

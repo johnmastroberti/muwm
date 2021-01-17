@@ -33,13 +33,9 @@ int valid_hex_color(const char *name) {
 void xrdb_load_color(XrmDatabase *xrdb, const char *color_name, char **color_out) {
   char *type; // muwm crashes if XrmGetResource doesn't get a non-null char**
   XrmValue value; // as the second to last argument, even though type is unused here
-  fputs("DEBUG: XrmGetResource\n", stderr);
   if (!XrmGetResource(*xrdb, color_name, NULL, &type, &value)) return;
-  fputs("DEBUG: valid hex color\n", stderr);
   if (!valid_hex_color(value.addr)) return;
-  fputs("DEBUG: strncpy\n", stderr);
   strncpy(*color_out, value.addr, 7);
-  fputs("DEBUG: strncpy complete\n", stderr);
   (*color_out)[7] = '\0';
 }
 
@@ -54,17 +50,13 @@ void update_colors(Display *dpy, int screen, Colors *c) {
   //char normal[] = "#000000";
   //char selected[] = "#FFFFFF";
 
-  fputs("DEBUG: XResourceManagerString\n", stderr);
   if ((resm = XResourceManagerString(dpy))) {
-    fputs("DEBUG: XrmGetStringDatabase\n", stderr);
     if ((xrdb = XrmGetStringDatabase(resm))) {
-      fputs("DEBUG: xrdb load color\n", stderr);
       xrdb_load_color(&xrdb, "muwm.normborder", &normal);
       xrdb_load_color(&xrdb, "muwm.selborder", &selected);
     }
   }
 
-  fputs("DEBUG: create color\n", stderr);
   create_color(dpy, screen, &(c->normal), normal);
   create_color(dpy, screen, &(c->selected), selected);
   free(normal);
