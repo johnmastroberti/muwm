@@ -1,5 +1,4 @@
 *.o
 tags
 muwm
-config.h
 xrdb.diff

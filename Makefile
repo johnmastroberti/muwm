@@ -24,9 +24,6 @@ obj:
 
 ${OBJ}: obj
 
-include/config.h:
-	cp include/config.def.h $@
-
 muwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
