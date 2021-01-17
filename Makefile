@@ -3,8 +3,10 @@
 
 include config.mk
 
-SRC = drw.c muwm.c util.c
-OBJ = ${SRC:.c=.o}
+SRC = $(shell ls src/*.c)
+OBJ = $(SRC:src/%.c=obj/%.o)
+
+.EXTRA_PREREQS = Makefile config.mk
 
 all: options muwm
 
@@ -14,13 +16,16 @@ options:
 	@echo "LDFLAGS  = ${LDFLAGS}"
 	@echo "CC       = ${CC}"
 
-.c.o:
-	${CC} -c ${CFLAGS} $<
+obj/%.o: src/%.c
+	${CC} -o $@ ${CFLAGS} -c $<
 
-${OBJ}: config.h config.mk
+obj:
+	mkdir -p obj
 
-config.h:
-	cp config.def.h $@
+${OBJ}: obj
+
+include/config.h:
+	cp include/config.def.h $@
 
 muwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
@@ -47,5 +52,12 @@ install: all
 uninstall:
 	rm -f ${DESTDIR}${PREFIX}/bin/muwm\
 		${DESTDIR}${MANPREFIX}/man1/muwm.1
+
+
+colors.o: src/colors.c include/util.h include/colors.h
+cursor.o: src/cursor.c include/cursor.h
+muwm.o: src/muwm.c include/colors.h include/cursor.h include/util.h \
+ include/config.h
+util.o: src/util.c include/util.h
 
 .PHONY: all options clean dist install uninstall
