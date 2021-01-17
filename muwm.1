@@ -1,0 +1,32 @@
+.TH MUWM 1 muwm\-VERSION
+.SH NAME
+muWM \- the micro window manager
+.SH SYNOPSIS
+.B muwm
+.RB [ \-v ]
+.SH DESCRIPTION
+TODO
+.SH OPTIONS
+.TP
+.B \-v
+prints version information to stderr, then exits.
+.SH USAGE
+.P TODO
+.SH SEE ALSO
+.BR muctl (1),
+.SH ISSUES
+Java applications which use the XToolkit/XAWT backend may draw grey windows
+only. The XToolkit/XAWT backend breaks ICCCM-compliance in recent JDK 1.5 and early
+JDK 1.6 versions, because it assumes a reparenting window manager. Possible workarounds
+are using JDK 1.4 (which doesn't contain the XToolkit/XAWT backend) or setting the
+environment variable
+.BR AWT_TOOLKIT=MToolkit
+(to use the older Motif backend instead) or running
+.B xprop -root -f _NET_WM_NAME 32a -set _NET_WM_NAME LG3D
+or
+.B wmname LG3D
+(to pretend that a non-reparenting window manager is running that the
+XToolkit/XAWT backend can recognize) or when using OpenJDK setting the environment variable
+.BR _JAVA_AWT_WM_NONREPARENTING=1 .
+.SH BUGS
+TODO
