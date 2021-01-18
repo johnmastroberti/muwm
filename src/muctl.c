@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   int pos = 0;
   for (int i=1; i<argc; i++) {
     sprintf(message + pos, "%s ", argv[i]);
-    pos += strlen(argv[i]);
+    pos += strlen(argv[i]) + 1;
   }
   message[pos] = '\0';
 

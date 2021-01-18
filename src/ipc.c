@@ -59,32 +59,65 @@ int connect_to_socket(int display, int screen) {
 }
 
 
-int send_message(int sockfd, char *message) {
-  return send(sockfd, message, strlen(message), 0);
+int send_message(int sockfd, const char *message) {
+  struct pollfd fds[] = {
+    {sockfd, POLLOUT, 0}
+  };
+  poll(fds, 1, -1);
+  ssize_t wl = write(sockfd, message, strlen(message));
+  char end[] = { ENDBYTE };
+  write(sockfd, end, 1);
+  return wl;
 }
 
 
+//1char* receive_message(int sockfd) {
+//1  int len = 32, pos = 0, nb;
+//1  char *response = malloc(len);
+//1
+//1  struct pollfd fds[] = {
+//1    {sockfd, POLLIN, 0},
+//1    {STDOUT_FILENO, POLLHUP, 0}
+//1  };
+//1
+//1  while (poll(fds, 2, -1) > 0) {
+//1    if (fds[0].revents & POLLIN) {
+//1      if ((nb = recv(sockfd, response+pos, len-pos, 0)) > 0) {
+//1        pos += nb;
+//1        len *= 2;
+//1        response = realloc(response, len);
+//1      }
+//1    } else {
+//1      break;
+//1    }
+//1  }
+//1  response[pos] = '\0';
+//1
+//1  return response;
+//1}
+
+#define BUFFSIZE 1024
 char* receive_message(int sockfd) {
-  int len = 32, pos = 0, nb;
+  int len = BUFFSIZE, pos = 0, nb;
+  char buf[BUFFSIZE];
   char *response = malloc(len);
 
   struct pollfd fds[] = {
     {sockfd, POLLIN, 0},
-    {STDOUT_FILENO, POLLHUP, 0}
   };
 
-  while (poll(fds, 2, -1) > 0) {
-    if (fds[0].revents & POLLIN) {
-      if ((nb = recv(sockfd, response+pos, len-pos, 0)) > 0) {
-        pos += nb;
-        len *= 2;
-        response = realloc(response, len);
-      }
-    } else {
-      break;
+  poll(fds, 1, -1);
+
+  while ((nb = read(sockfd, buf, sizeof(buf))) > 0) {
+    memcpy(response+pos, buf, sizeof(buf));
+    pos += nb;
+    if (response[pos-1] == ENDBYTE) break;
+    else if (pos + BUFFSIZE > len) {
+      len *= 2;
+      response = realloc(response, len);
     }
   }
-  response[pos] = '\0';
+  response[pos-1] = '\0';
 
   return response;
 }
