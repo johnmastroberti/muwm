@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <poll.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
@@ -45,6 +47,8 @@
 #include "cursor.h"
 #include "util.h"
 #include "muwm.h"
+#include "ipc.h"
+#include "cmd.h"
 
 /* enums */
 enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
@@ -83,6 +87,7 @@ static Colors colors;
 static Display *dpy;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
+static int sockfd = -1, dpyfd = -1;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -1104,9 +1109,26 @@ void run(void) {
   XEvent ev;
   /* main event loop */
   XSync(dpy, False);
-  while (running && !XNextEvent(dpy, &ev))
-    if (handler[ev.type])
-      handler[ev.type](&ev); /* call handler */
+
+  struct pollfd fds[] = {
+    {sockfd, POLLIN, 0},
+    {dpyfd, POLLIN, 0},
+  };
+
+  while (running) {
+    if (poll(fds, 2, -1) <= 0) running = 0;
+    // Socket message
+    if (fds[0].revents & POLLIN) {
+      int connfd = accept(sockfd, NULL, 0);
+      handle_connection(connfd, mons);
+    }
+    // X events
+    if (fds[1].revents & POLLIN) {
+      if (!XNextEvent(dpy, &ev)) running = 0;
+      if (handler[ev.type])
+        handler[ev.type](&ev); /* call handler */
+    }
+  }
 }
 
 // Checks for windows that already exist when muwm starts up,
@@ -1817,12 +1839,15 @@ main(int argc, char *argv[])
     die("muwm: cannot open display");
   checkotherwm();
   setup();
+  sockfd = create_socket(display_number(), screen);
+  dpyfd = ConnectionNumber(dpy);
 #ifdef __OpenBSD__
   if (pledge("stdio rpath proc exec", NULL) == -1)
     die("pledge");
 #endif /* __OpenBSD__ */
   scan();
   run();
+  close(sockfd);
   if (restart) execvp(argv[0], argv);
   cleanup();
   XCloseDisplay(dpy);

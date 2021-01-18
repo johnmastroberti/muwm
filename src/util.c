@@ -4,8 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <string.h>
 
 #include "util.h"
+
+int display_number() {
+  char *display_var = NULL;
+  if ((display_var = getenv("DISPLAY")) && strlen(display_var) > 1)
+    return atoi(display_var + 1);
+  else
+    return 0;
+}
+
 
 void *
 ecalloc(size_t nmemb, size_t size)
@@ -17,31 +27,20 @@ ecalloc(size_t nmemb, size_t size)
 	return p;
 }
 
-//#define LOGGING
 
 void
 die(const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-#ifdef LOGGING
-  FILE *log = fopen("/home/john/errlog.txt", "w+");
-	vfprintf(log, fmt, ap);
-#else
 	vfprintf(stderr, fmt, ap);
-#endif
 	va_end(ap);
 
 	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
-#ifdef LOGGING
-		fputc(' ', log);
-    fputs(strerror(errno), log);
-#else
 		fputc(' ', stderr);
 		perror(NULL);
 	} else {
 		fputc('\n', stderr);
-#endif
 	}
 
 	exit(1);
