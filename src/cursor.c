@@ -11,7 +11,7 @@ void create_cursors(Display *dpy, Cursors *c) {
 
 void free_cursors(Display *dpy, Cursors *c) {
   if (!dpy || !c) return;
-  XFreeCursor(dpy, CurNormal);
-  XFreeCursor(dpy, CurResize);
-  XFreeCursor(dpy, CurMove);
+  XFreeCursor(dpy, c->normal);
+  XFreeCursor(dpy, c->resize);
+  XFreeCursor(dpy, c->move);
 }

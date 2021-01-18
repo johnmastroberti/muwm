@@ -1116,7 +1116,8 @@ void run(void) {
   };
 
   while (running) {
-    if (poll(fds, 2, -1) <= 0) running = 0;
+    //if (poll(fds, 2, -1) <= 0) running = 0;
+    poll(fds, 2, -1);
     // Socket message
     if (fds[0].revents & POLLIN) {
       int connfd = accept(sockfd, NULL, 0);
@@ -1124,7 +1125,7 @@ void run(void) {
     }
     // X events
     if (fds[1].revents & POLLIN) {
-      if (!XNextEvent(dpy, &ev)) running = 0;
+      if (XNextEvent(dpy, &ev)) running = 0;
       if (handler[ev.type])
         handler[ev.type](&ev); /* call handler */
     }
