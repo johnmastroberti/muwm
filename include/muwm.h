@@ -56,6 +56,7 @@ typedef struct {
 } Key;
 
 typedef struct {
+  const char *name;
 	const char *symbol;
 	void (*arrange)(Monitor *);
 } Layout;
@@ -144,6 +145,7 @@ void setclientstate(Client *c, long state);
 void setfocus(Client *c);
 void setfullscreen(Client *c, int fullscreen);
 void setlayout(const Arg *arg);
+const Layout* getlayout(const char *name);
 void setmfact(const Arg *arg);
 void setup(void);
 void setup_screen(void);

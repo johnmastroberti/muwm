@@ -273,7 +273,7 @@ void
 cleanup(void)
 {
   Arg a = {.ui = ~0};
-  Layout foo = { "", NULL };
+  Layout foo = { "", "", NULL };
   Monitor *m;
 
   view(&a);
@@ -1247,6 +1247,14 @@ setfullscreen(Client *c, int fullscreen)
     resizeclient(c, c->x, c->y, c->w, c->h);
     arrange(c->mon);
   }
+}
+
+const Layout *getlayout(const char *name) {
+  if (!name) return NULL;
+  for (unsigned i=0; i<LENGTH(layouts); i++)
+    if (layouts[i].name && !strcmp(layouts[i].name, name))
+      return &layouts[i];
+  return NULL;
 }
 
 void
