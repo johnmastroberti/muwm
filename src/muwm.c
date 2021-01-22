@@ -88,6 +88,7 @@ static Display *dpy;
 static Monitor *mons, *selmon;
 static Window root, wmcheckwin;
 static int sockfd = -1, dpyfd = -1;
+static Subscriber *subs;
 
 /* configuration, allows nested code to access above variables */
 #include "config.h"
@@ -1834,6 +1835,33 @@ zoom(const Arg *arg)
       return;
   pop(c);
 }
+
+int add_subscriber(int pid) {
+  if (!kill(pid, 0)) return 0; // check that pid is valid
+  Subscriber *s;
+  for (s = subs; s && s->next; s = s->next);
+  s->next = malloc(sizeof(Subscriber));
+  s->next->pid = pid;
+  s->next->next = NULL;
+  return 1;
+}
+
+
+void reset_subscribers() {
+  Subscriber *s, *next;
+  for (s = subs; s; s = next) {
+    next = s->next;
+    free(s);
+  }
+}
+
+
+void notify_subscribers() {
+  Subscriber *s;
+  for (s = subs; s; s = s->next)
+    kill(s->pid, SIGUSR1);
+}
+
 
 int
 main(int argc, char *argv[])

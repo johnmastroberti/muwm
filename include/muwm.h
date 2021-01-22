@@ -87,6 +87,17 @@ typedef struct {
 	int monitor;
 } Rule;
 
+typedef struct Subscriber Subscriber;
+struct Subscriber{
+  int pid;
+  Subscriber *next;
+};
+
+int add_subscriber(int pid);
+void reset_subscribers();
+void notify_subscribers();
+
+
 /* function declarations */
 void applyrules(Client *c);
 int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
