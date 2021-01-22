@@ -3,7 +3,7 @@
 
 include config.mk
 
-MUWM_SRC = src/colors.c src/cursor.c src/ipc.c src/muwm.c src/util.c src/cmd.c
+MUWM_SRC = src/cmd.c src/cmd_misc.c src/cmd_mon.c src/cmd_set.c src/cmd_tag.c src/colors.c src/cursor.c src/ipc.c src/muwm.c src/util.c
 MUWM_OBJ = $(MUWM_SRC:src/%.c=obj/%.o)
 
 MUCTL_SRC = src/ipc.c src/muctl.c src/util.c
@@ -22,12 +22,6 @@ options:
 
 obj/%.o: src/%.c
 	${CC} -o $@ ${CFLAGS} -c $<
-
-obj:
-	mkdir -p obj
-
-${MUWM_OBJ}: obj
-${MUCTL_OBJ}: obj
 
 muwm: ${MUWM_OBJ}
 	${CC} -o $@ ${MUWM_OBJ} ${LDFLAGS}
@@ -62,13 +56,23 @@ uninstall:
 		${DESTDIR}${MANPREFIX}/man1/muwm.1
 
 
+cmd.o: src/cmd.c include/cmd.h include/muwm.h include/util.h \
+ include/ipc.h
+cmd_misc.o: src/cmd_misc.c include/cmd.h include/muwm.h include/util.h \
+ include/ipc.h
+cmd_mon.o: src/cmd_mon.c include/cmd.h include/muwm.h include/util.h \
+ include/ipc.h
+cmd_set.o: src/cmd_set.c include/cmd.h include/muwm.h include/util.h \
+ include/ipc.h
+cmd_tag.o: src/cmd_tag.c include/cmd.h include/muwm.h include/util.h \
+ include/ipc.h
 colors.o: src/colors.c include/util.h include/colors.h
 cursor.o: src/cursor.c include/cursor.h
 ipc.o: src/ipc.c include/ipc.h include/util.h
 muctl.o: src/muctl.c include/ipc.h include/util.h
 muwm.o: src/muwm.c include/colors.h include/cursor.h include/util.h \
- include/muwm.h include/config.h
+ include/muwm.h include/util.h include/ipc.h include/cmd.h \
+ include/config.h
 util.o: src/util.c include/util.h
-cmd.o: src/cmd.c include/cmd.h include/muwm.h include/ipc.h
 
 .PHONY: all options clean dist install uninstall
